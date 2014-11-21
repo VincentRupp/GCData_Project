@@ -1,3 +1,8 @@
+---
+output:
+  html_document:
+    keep_md: yes
+---
 
 ###Getting and Cleaning Data - Project Writeup
 
@@ -35,8 +40,7 @@ The R code can be summarized neatly in four steps:
 4. Calculate the mean for each mean and sd.dev column
 
 **Step 0 Set up knitr options**
-
-```r
+```{r}
 library(knitr)
 opts_chunk$set(echo=TRUE,results="show",cache=TRUE,warning=FALSE)
 ```
@@ -44,76 +48,63 @@ Note that I am assuming all data files are in the same directory as the source f
 
 **Step 1 Import all the files for the testing sets**  
 *1.1 Import subject_test.txt*  
-
-```r
+```{r}
 subject_test <- read.table("subject_test.txt",col.names="ID")
 ```
 *1.2 Import X_test.txt*  
-
-```r
+```{r}
 xtest <- read.table("X_test.txt",header=F,nrows=2947,quote="e")
 ```
 *1.3 Import y_test.txt*  
-
-```r
+```{r}
 ytest <- read.table("y_test.txt",header=F,nrows=2947)
 ```
 *1.4. Import subject_train.txt*  
-
-```r
+```{r}
 subject_train <- read.table("subject_train.txt",col.names="ID")
 ```
 *1.5. Import X_train.txt*  
-
-```r
+```{r}
 xtrain <- read.table("X_train.txt",header=F,nrows=7352,quote="e")
 ```
 *1.6c. Import y_train.txt*  
-
-```r
+```{r}
 ytrain <- read.table("y_train.txt",header=F,nrows=7352)
 ```
 *1.7. Read features.txt (This is the column names)*  
-
-```r
+```{r}
 library(data.table)
 features <- fread("features.txt")
 ```
 
 *1.8. Read activity_labels*  
 Note: This step isn't technically required, but one goal is to provide understandable labels for each data element, and the six numeric activity codes are matched to words in this file.  
-
-```r
+```{r}
 activity_labels <- fread("activity_labels.txt")
 setnames(activity_labels,old=c("V1","V2"),new=c("ID","activity_label"))
 ```
 
 **Step 2 Put the Files Together**  
 *2.1 Combine the subject, X, and y testing files with cbind*
-
-```r
+```{r}
 testFile <- cbind(subject_test,xtest,ytest)
 ```
 *2.2 Do the same with the training files*
-
-```r
+```{r}
 trainFile <- cbind(subject_train,xtrain,ytrain)
 ```
 *2.3 Combine those into one file with rbind*  
 (Note: This step generates a huge annoying warning. I don't know why, but it's 100% about columns that won't be kept in Step 3, so I don't care. =D)  
-
-```r
+```{r}
 finalFile <- rbind(trainFile,testFile)
 ```
 *2.4 Rename the columns using the column names in the second row of the features file and manually name the subject (1st column) and activity (last column)*  
-
-```r
+```{r}
 names(finalFile) <- c("subject",features$V2,"activity")
 ```
 *2.5. Let's also merge in the activity labels*  
 (It's actually a waste of memory to do that now, but for this assignment it seems to fit with readability here..)  
-
-```r
+```{r}
 finalFile <- merge(finalFile,activity_labels,by.x="activity",by.y="ID")
 ```
 
@@ -121,14 +112,12 @@ finalFile <- merge(finalFile,activity_labels,by.x="activity",by.y="ID")
 **Step 3 Extract only the mean and standard deviation columns**  
 
 *3.1 Make a list of the column names (excluding subject, activity, and activity_label)*
-
-```r
+```{r}
 myNames <- names(finalFile[1,3:563])
 ```
 *3.2 Get the mean and sd.dev columns*  
 Here I'm using regular expressions to tell me which columns contain the literal string "mean" and "std", then make a T/F vector where either is true. Those will be the data columns I want to keep.  
-
-```r
+```{r}
 myMeanCols <- regexpr("mean",myNames,ignore.case=T) != -1
 mySDCols <- regexpr("std",myNames,ignore.case=T) != -1
 myCols <- myMeanCols | mySDCols
@@ -137,8 +126,7 @@ myCols <- myMeanCols | mySDCols
 *3.3 Extract the desired columns*  
 Note I also manually keep activity, activity_label, and subject. Only the data columns were checked for in 3.2  
 Note 2: I'm using setnames() throughout this document because 'colnames(filterFile) <- whatever' was throwing warnings uring the change.  
-
-```r
+```{r}
 filterFile <- finalFile[,c(T,T,myCols,T)]
 n <- names(filterFile)
 n2 <- make.names(n,unique=T)
@@ -147,8 +135,7 @@ setnames(filterFile,old=n,new=n2)
 **Step 4 Summarize**  
 I'll use aggregate to average means and sd's by activity and subject, then rename the columns with the existing names plus 'meanOf_'.  
 e.g. 'tBodyAcc.mean...X' becomes 'meanOf_tBodyAcc.mean...X' since it is the mean of the raw data values.  
-
-```r
+```{r}
 aggFile <- aggregate(filterFile[,3:88],
                      by=list(activity=filterFile$activity,
                              activity_label=filterFile$activity_label,
@@ -157,11 +144,8 @@ aggFile <- aggregate(filterFile[,3:88],
 n <- names(aggFile)
 n2 <- sapply(n[4:89],function(elt) paste("meanOf_",elt,sep=""))
 setnames(aggFile,old=n,new=c(n[1:3],n2))
+
 ```
 The resulting file has 180 rows: 6 activities for each of 30 subjects.  
 Every column is named appropriately, and all means and standard deviation columns in the original data are represented with their means by subject and activity.  
 Mission complete. [sunglasses emoji]  
-
-
-
-
