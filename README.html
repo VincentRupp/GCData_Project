@@ -120,6 +120,24 @@ n &lt;- names(aggFile)
 n2 &lt;- sapply(n[4:89],function(elt) paste(&quot;meanOf_&quot;,elt,sep=&quot;&quot;))
 setnames(aggFile,old=n,new=c(n[1:3],n2))</code></pre>
 <p>The resulting file has 180 rows: 6 activities for each of 30 subjects.<br />Every column is named appropriately, and all means and standard deviation columns in the original data are represented with their means by subject and activity.<br />Mission complete. [sunglasses emoji]</p>
+<p>Oh wait, I have to also write the table and a codebook.</p>
+<pre class="r"><code>write.table(aggFile,&quot;tidyData.txt&quot;,row.name=F)
+codeBookFields &lt;- names(aggFile)
+codeBookBlah &lt;- sapply(n[4:89],function(elt) paste(&quot;The average (mean) of the data field&quot;,elt,&quot;for the subject and activity.&quot;))
+#I feel like a super pro using sapply with an anonymous function. [another sunglasses emoji]
+codeBookDescriptions &lt;- c(&quot;The numeric value of the activity the subject performed while engaging in the activity&quot;,
+                          &quot;An English description of the activity&quot;,
+                          &quot;The numeric identifier of the subject (1-30)&quot;,
+                          codeBookBlah)
+
+codeBook2 &lt;- paste(codeBookFields,codeBookDescriptions,sep=&quot;: &quot;)
+codeBook2 &lt;- c(&quot;This is a narrow data set that calculates the mean of various variables from a Samsung Galaxy II.&quot;,
+               &quot;This file contains summarized data for both a test and train data set.&quot;,
+               &quot;No other transformations or calculations were performed&quot;,
+               &quot;Please see features_info.txt for descriptions of the underlying data.&quot;,
+               &quot;================================================&quot;,
+               codeBook2)
+write.table(codeBook2,&quot;codeBook.md&quot;,row.name=F,col.name=F)</code></pre>
 </div>
 </div>
 

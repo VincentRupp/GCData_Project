@@ -77,3 +77,22 @@ n2 <- sapply(n[4:89],function(elt) paste("meanOf_",elt,sep=""))
 setnames(aggFile,old=n,new=c(n[1:3],n2))
 #The resulting file has 180 rows: 6 activities for each of 30 subjects.
 #Mission complete. [sunglasses emoji]
+
+#Still need to write the file and add a codebook
+
+write.table(aggFile,"tidyData.txt",row.name=F)
+codeBookFields <- names(aggFile)
+codeBookBlah <- sapply(n[4:89],function(elt) paste("The average (mean) of the data field",elt,"for the subject and activity."))
+#I feel like a super pro using sapply with an anonymous function. [another sunglasses emoji]
+codeBookDescriptions <- c("The numeric value of the activity the subject performed while engaging in the activity",
+                          "An English description of the activity",
+                          "The numeric identifier of the subject (1-30)",
+                          codeBookBlah)
+codeBook2 <- paste(codeBookFields,codeBookDescriptions,sep=": ")
+codeBook2 <- c("This is a narrow data set that calculates the mean of various variables from a Samsung Galaxy II.",
+               "This file contains summarized data for both a test and train data set.",
+               "No other transformations or calculations were performed",
+               "Please see features_info.txt for descriptions of the underlying data.",
+               "================================================",
+               codeBook2)
+write.table(codeBook2,"codeBook.md",row.name=F,col.name=F)
